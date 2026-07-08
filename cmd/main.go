@@ -12,5 +12,4 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error Parsing Arguments: %v", err)
 		return
 	}
-
 }
