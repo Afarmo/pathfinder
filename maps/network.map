@@ -1,11 +1,8 @@
 stations:
-# south stations
-waterloo  , 3 , 1
-victoria,3,7
 
-# north stations
+victoria,6,7
 euston,11,23
-st_pancras,5,15 # international
+st_pancras,5,15
 
 connections:
 waterloo-victoria
