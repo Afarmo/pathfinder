@@ -13,41 +13,35 @@ type Config struct {
 	Trains   int
 }
 
-// ParseArgs function reads command-line input and returns a slice of arguments and an error
-func ParseArgs(args []string) ([]string, error) {
-	if len(args) < 5 {
-		return nil, fmt.Errorf("More arguments needed")
+// ParseArgs parses and validates command-line input and constructs a Config
+func ParseArgs(args []string) (Config, error) {
+	if len(args) != 5 {
+		return Config{}, fmt.Errorf("insufficient arguments")
 	}
+
 	filepath := args[1]
 	start := args[2]
 	end := args[3]
-	trains := args[4]
+	trainsArg := args[4]
 
-	return append([]string{}, filepath, start, end, trains), nil
-}
-
-func ValidateArgs(args []string) (*Config, error) {
-	trains, err := strconv.Atoi(args[3])
+	trains, err := strconv.Atoi(trainsArg)
 	if err != nil {
-		return nil, fmt.Errorf("[Number of trains] needs to be a number")
-	}
-	if trains > 10000 {
-		return nil, fmt.Errorf("Number of trains exceeds 10 000")
+		return Config{}, fmt.Errorf("number of trains must be an integer")
 	}
 	if trains < 1 {
-		return nil, fmt.Errorf("Number of trains needs to be atleast 1")
+		return Config{}, fmt.Errorf("number of trains must be greater than 0")
 	}
-	if args[1] == args[2] {
-		return nil, fmt.Errorf("Matching start station and end station")
+	if start == end {
+		return Config{}, fmt.Errorf("start and end station must be different")
 	}
-	if !strings.HasSuffix(args[0], ".map") {
-		return nil, fmt.Errorf("Invalid file extension")
+	if !strings.HasSuffix(filepath, ".map") && !strings.HasSuffix(filepath, ".txt") {
+		return Config{}, fmt.Errorf("invalid file extension")
 	}
-	cfg := &Config{
-		FilePath: args[0],
-		Start:    args[1],
-		End:      args[2],
+
+	return Config{
+		FilePath: filepath,
+		Start:    start,
+		End:      end,
 		Trains:   trains,
-	}
-	return cfg, nil
+	}, nil
 }
