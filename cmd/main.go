@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
+
 	"pathfinder/internal/cli"
 	"pathfinder/internal/parser"
+	"pathfinder/internal/pathfinder"
 )
 
 func main() {
@@ -18,4 +20,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error Parsing Map: %v\n", err)
 		return
 	}
+	path, err := pathfinder.FindShortestPath(graph, "A", "B")
+	fmt.Println(path)
 }
