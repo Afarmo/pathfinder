@@ -2,13 +2,14 @@ package parser
 
 import (
 	"fmt"
+	"pathfinder/internal/models"
 	"strconv"
 	"strings"
 	"unicode"
 )
 
 func ConnectionValidator(ConnectionLine []string) (map[string]map[string]bool, error) {
-	var stations map[string]Station
+	var stations map[string]models.Station
 	connections := make(map[string]map[string]bool)
 
 	for _, line := range ConnectionLine {
@@ -46,8 +47,8 @@ func ConnectionValidator(ConnectionLine []string) (map[string]map[string]bool, e
 
 }
 
-func Stationvalidator(stationLines []string) (map[string]Station, error) {
-	stations := make(map[string]Station)
+func Stationvalidator(stationLines []string) (map[string]models.Station, error) {
+	stations := make(map[string]models.Station)
 	coords := make(map[[2]int]string)
 
 	for _, line := range stationLines {
@@ -88,7 +89,7 @@ func Stationvalidator(stationLines []string) (map[string]Station, error) {
 		}
 		coords[coord] = name
 
-		stations[name] = Station{Name: name, X: x, Y: y}
+		stations[name] = models.Station{Name: name, X: x, Y: y}
 	}
 	return stations, nil
 }

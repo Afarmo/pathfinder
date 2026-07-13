@@ -4,14 +4,15 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"pathfinder/internal/models"
 	"slices"
 	"strings"
 )
 
-func MapParser(path string) (Graph, error) {
+func MapParser(path string) (models.Graph, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return Graph{}, fmt.Errorf("map file dosn't exist")
+		return models.Graph{}, fmt.Errorf("map file dosn't exist")
 	}
 	defer file.Close()
 
@@ -27,14 +28,24 @@ func MapParser(path string) (Graph, error) {
 		lines = append(lines, trimmedLine)
 	}
 	if err := scanner.Err(); err != nil {
-		return Graph{}, fmt.Errorf("error reading map file: %w", err)
+		return models.Graph{}, fmt.Errorf("error reading map file: %w", err)
 	}
+
 	stations, connections, err := Categorize(lines)
-	vaidatedconnections, err := ConnectionValidator(connections)
-	vaidatedstations, err := Stationvalidator(stations)
-	g := Graph{
-		Stations:    vaidatedstations,
-		Connections: vaidatedconnections,
+	if err != nil {
+		return models.Graph{}, fmt.Errorf("error categorizing: %w", err)
+	}
+	validatedconnections, err := ConnectionValidator(connections)
+	if err != nil {
+		return models.Graph{}, fmt.Errorf("error validating connection: %w", err)
+	}
+	validatedstations, err := Stationvalidator(stations)
+	if err != nil {
+		return models.Graph{}, fmt.Errorf("error validating station: %w", err)
+	}
+	g := models.Graph{
+		Stations:    validatedstations,
+		Connections: validatedconnections,
 	}
 	return g, nil
 }
