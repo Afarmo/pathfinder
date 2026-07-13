@@ -8,10 +8,10 @@ import (
 	"strings"
 )
 
-func MapParser (path string) ([]string, error) {
+func MapParser(path string) (Graph, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("map file dosn't exist")
+		return Graph{}, fmt.Errorf("map file dosn't exist")
 	}
 	defer file.Close()
 
@@ -27,12 +27,19 @@ func MapParser (path string) ([]string, error) {
 		lines = append(lines, trimmedLine)
 	}
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading map file: %w", err)
+		return Graph{}, fmt.Errorf("error reading map file: %w", err)
 	}
-	return lines, nil
+	stations, connections, err := Categorize(lines)
+	vaidatedconnections, err := ConnectionValidator(connections)
+	vaidatedstations, err := Stationvalidator(stations)
+	g := Graph{
+		Stations:    vaidatedstations,
+		Connections: vaidatedconnections,
+	}
+	return g, nil
 }
 
-func Categorize (lines []string) ([]string, []string, error) {
+func Categorize(lines []string) ([]string, []string, error) {
 	var stations, connections []string
 	stationsIdx := slices.Index(lines, "stations:")
 	connectionsIdx := slices.Index(lines, "connections:")

@@ -2,29 +2,18 @@ package parser
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
-type Station struct {
-	Name string
-	X    int
-	Y    int
-}
-
-type Network struct {
-	Stations    map[string]*Station
-	Connections map[string]map[string]bool
-}
-
-func ConnectionValidator (ConnectionLine []string)(map[string]map[string]bool, error){
-	var stations map[string]*Station
+func ConnectionValidator(ConnectionLine []string) (map[string]map[string]bool, error) {
+	var stations map[string]Station
 	connections := make(map[string]map[string]bool)
 
-	for _,line:= range ConnectionLine{
-		eachConnection:= strings.Split(line, "-")
-		if len(eachConnection) != 2{
+	for _, line := range ConnectionLine {
+		eachConnection := strings.Split(line, "-")
+		if len(eachConnection) != 2 {
 			return nil, fmt.Errorf("Invalid connection line %s", eachConnection)
 		}
 		connection1 := eachConnection[0]
@@ -32,11 +21,11 @@ func ConnectionValidator (ConnectionLine []string)(map[string]map[string]bool, e
 
 		_, exists := stations[connection1]
 		_, ok := stations[connection2]
-		
-		if exists{
+
+		if exists {
 			return nil, fmt.Errorf("station unknown: %s", connection1)
 		}
-		if ok{
+		if ok {
 			return nil, fmt.Errorf("station unknown: %s", connection2)
 		}
 		if connections[connection1][connection2] {
@@ -53,13 +42,12 @@ func ConnectionValidator (ConnectionLine []string)(map[string]map[string]bool, e
 		connections[connection1][connection2] = true
 		connections[connection2][connection1] = true
 	}
-	return connections,nil
+	return connections, nil
 
 }
-var nameRule = regexp.MustCompile(`^[a-z0-9_]+$`)
 
-func Stationvalidator (stationLines []string) (map[string]*Station, error) {
-	stations := make(map[string]*Station)
+func Stationvalidator(stationLines []string) (map[string]Station, error) {
+	stations := make(map[string]Station)
 	coords := make(map[[2]int]string)
 
 	for _, line := range stationLines {
@@ -71,15 +59,19 @@ func Stationvalidator (stationLines []string) (map[string]*Station, error) {
 		xCoord := strings.TrimSpace(eachparts[1])
 		yCoord := strings.TrimSpace(eachparts[2])
 
-		if !nameRule.MatchString(name) {
-			return nil, fmt.Errorf("invalid staion name: %s", name)
+		for _, v := range name {
+			if unicode.IsLower(v) || unicode.IsNumber(v) || v == '_' {
+				continue
+			} else {
+				return nil, fmt.Errorf("invalid staion name: %s", name)
+			}
 		}
 		_, exists := stations[name]
 		if exists {
 			return nil, fmt.Errorf("duplicate station name: %s", name)
 		}
 
-		x, err := strconv.Atoi (xCoord)
+		x, err := strconv.Atoi(xCoord)
 		if err != nil || x < 0 {
 			return nil, fmt.Errorf("error changing x coordinate for %s", xCoord)
 		}
@@ -96,8 +88,7 @@ func Stationvalidator (stationLines []string) (map[string]*Station, error) {
 		}
 		coords[coord] = name
 
-		stations[name] = &Station{Name: name, X: x, Y: y}
+		stations[name] = Station{Name: name, X: x, Y: y}
 	}
 	return stations, nil
 }
-
