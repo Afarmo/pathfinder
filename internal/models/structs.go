@@ -7,6 +7,6 @@ type Station struct {
 }
 
 type Graph struct {
-	Stations    map[string]*Station
+	Stations    map[string]Station
 	Connections map[string]map[string]bool
 }
