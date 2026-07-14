@@ -5,27 +5,6 @@ import (
 	"pathfinder/internal/models"
 )
 
-type Stations struct {
-	Station    string
-	Neighbours []*Stations
-}
-
-type Graph struct {
-	Stations map[string][]string
-}
-
-// Testing
-func NewGraph() Graph {
-	return Graph{
-		Stations: map[string][]string{
-			"A": {"B", "C"},
-			"B": {"A", "D"},
-			"C": {"B", "D"},
-			"D": {"B", "C"},
-		},
-	}
-}
-
 // Converts a boolean connections map to a slice based adjacency map
 func graphConverter(gph models.Graph) map[string][]string {
 
