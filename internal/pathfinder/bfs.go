@@ -1,6 +1,9 @@
 package pathfinder
 
-import "fmt"
+import (
+	"fmt"
+	"pathfinder/internal/models"
+)
 
 type Stations struct {
 	Station    string
@@ -21,6 +24,22 @@ func NewGraph() Graph {
 			"D": {"B", "C"},
 		},
 	}
+}
+
+// Converts a boolean connections map to a slice based adjacency map
+func graphConverter(gph models.Graph) map[string][]string {
+
+	adjacency := make(map[string][]string, len(gph.Connections))
+
+	for key, innerMap := range gph.Connections {
+		connections := make([]string, 0, len(innerMap))
+		for innerKey := range innerMap {
+			connections = append(connections, innerKey)
+		}
+		adjacency[key] = connections
+	}
+
+	return adjacency
 }
 
 func FindShortestPath(g Graph, start, end string) ([]string, error) {
