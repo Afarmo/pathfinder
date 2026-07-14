@@ -20,6 +20,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error Parsing Map: %v\n", err)
 		return
 	}
-	path, err := pathfinder.FindShortestPath(graph, "A", "B")
-	fmt.Println(path)
+	path, err := pathfinder.FindShortestPath(graph, cfg.Start, cfg.End)
+	fmt.Printf("\nPath: %v\n\n", path)
+
 }

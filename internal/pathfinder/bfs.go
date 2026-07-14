@@ -3,6 +3,7 @@ package pathfinder
 import (
 	"fmt"
 	"pathfinder/internal/models"
+	"slices"
 )
 
 // Converts a boolean connections map to a slice based adjacency map
@@ -21,43 +22,72 @@ func graphConverter(gph models.Graph) map[string][]string {
 	return adjacency
 }
 
-func FindShortestPath(g Graph, start, end string) ([]string, error) {
+func FindShortestPath(graph models.Graph, start, end string) ([]string, error) {
 
-	visited := make(map[string]bool)
-	tempRoute := []string{}
-	shortestRoute := []string{}
-	tempRoute = append(tempRoute, start)
+	connections := graphConverter(graph)
+	visited := map[string]bool{}
 	visited[start] = true
-	// Looping neighbours of start
-	for _, station := range g.Stations[start] {
+
+	queue := []string{}
+
+	parents := map[string]string{}
+
+	// Looping stations connected to start station
+	for _, station := range connections[start] {
 		if station == end {
-			shortestRoute = append(append(shortestRoute, tempRoute...), station)
+			parents[end] = start
 			break
 		}
-
-		tempRoute = append(tempRoute, station)
-
+		queue = append(queue, station)
 		visited[station] = true
-		// Looping neighbours of start neighbours
-		for _, substation := range g.Stations[station] {
+		parents[station] = start
+
+		// Looping stations connected to previous station
+		for _, substation := range connections[queue[0]] {
 
 			// Going backwards
 			if _, visitedStation := visited[substation]; visitedStation == true {
 				continue
 			}
-			visited[substation] = true
-			tempRoute = append(tempRoute, substation)
-			if end == substation {
 
-				shortestRoute = append(shortestRoute, tempRoute...)
+			parents[substation] = station
+
+			if substation == end {
+				break
 			}
+
+			queue = append(queue, substation)
+			// visited[substation] = true
 		}
-		tempRoute = nil
-		tempRoute = append(tempRoute, start)
+
+		if _, found := parents[end]; found == true {
+			break
+		}
+		if len(queue) == 0 {
+			return nil, fmt.Errorf("no path found between %s and %s", start, end)
+		}
+		queue = queue[1:]
+
 	}
-	if len(shortestRoute) == 0 {
-		return nil, fmt.Errorf("end station could not be reached")
-	}
-	fmt.Printf("Path: %v\n\n", shortestRoute)
+
+	shortestRoute := reconstructPath(parents, end)
 	return shortestRoute, nil
+}
+
+func reconstructPath(shortestRoute map[string]string, end string) []string {
+	var res []string
+	var next string = end
+
+	res = append(res, next)
+
+	for i := 0; i < len(shortestRoute); i++ {
+
+		if parent, found := shortestRoute[next]; found == true {
+			res = append(res, parent)
+			next = parent
+		}
+	}
+	slices.Reverse(res)
+
+	return res
 }
