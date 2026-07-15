@@ -28,20 +28,20 @@ func MapParser(path string) (models.Graph, error) {
 		lines = append(lines, trimmedLine)
 	}
 	if err := scanner.Err(); err != nil {
-		return models.Graph{}, fmt.Errorf("error reading map file: %w", err)
+		return models.Graph{}, fmt.Errorf("error reading m ap file: %w", err)
 	}
 
 	stations, connections, err := Categorize(lines)
 	if err != nil {
 		return models.Graph{}, fmt.Errorf("error categorizing: %w", err)
 	}
-	validatedconnections, err := ConnectionValidator(connections)
-	if err != nil {
-		return models.Graph{}, fmt.Errorf("error validating connection: %w", err)
-	}
 	validatedstations, err := Stationvalidator(stations)
 	if err != nil {
 		return models.Graph{}, fmt.Errorf("error validating station: %w", err)
+	}
+	validatedconnections, err := ConnectionValidator(connections, validatedstations)
+	if err != nil {
+		return models.Graph{}, fmt.Errorf("error validating connection: %w", err)
 	}
 	g := models.Graph{
 		Stations:    validatedstations,

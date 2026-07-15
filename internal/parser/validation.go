@@ -8,8 +8,7 @@ import (
 	"unicode"
 )
 
-func ConnectionValidator(ConnectionLine []string) (map[string]map[string]bool, error) {
-	var stations map[string]models.Station
+func ConnectionValidator(ConnectionLine []string, stations map[string]models.Station) (map[string]map[string]bool, error) {
 	connections := make(map[string]map[string]bool)
 
 	for _, line := range ConnectionLine {
@@ -17,16 +16,17 @@ func ConnectionValidator(ConnectionLine []string) (map[string]map[string]bool, e
 		if len(eachConnection) != 2 {
 			return nil, fmt.Errorf("Invalid connection line %s", eachConnection)
 		}
-		connection1 := eachConnection[0]
-		connection2 := eachConnection[1]
-
+	
+		connection1 := strings.TrimSpace(eachConnection[0])
+		connection2 := strings.TrimSpace(eachConnection[1])
+		
 		_, exists := stations[connection1]
 		_, ok := stations[connection2]
 
-		if exists {
+		if !exists {
 			return nil, fmt.Errorf("station unknown: %s", connection1)
 		}
-		if ok {
+		if !ok{
 			return nil, fmt.Errorf("station unknown: %s", connection2)
 		}
 		if connections[connection1][connection2] {
@@ -73,7 +73,7 @@ func Stationvalidator(stationLines []string) (map[string]models.Station, error) 
 		}
 
 		x, err := strconv.Atoi(xCoord)
-		if err != nil || x < 0 {
+		if err != nil || x <= 0 {
 			return nil, fmt.Errorf("error changing x coordinate for %s", xCoord)
 		}
 
