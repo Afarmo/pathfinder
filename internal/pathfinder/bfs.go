@@ -2,8 +2,9 @@ package pathfinder
 
 import (
 	"fmt"
-	"pathfinder/internal/models"
 	"slices"
+
+	"pathfinder/internal/models"
 )
 
 // Converts a boolean connections map to a slice based adjacency map
@@ -25,69 +26,60 @@ func graphConverter(gph models.Graph) map[string][]string {
 func FindShortestPath(graph models.Graph, start, end string) ([]string, error) {
 
 	connections := graphConverter(graph)
+
 	visited := map[string]bool{}
 	visited[start] = true
 
-	queue := []string{}
+	queue := []string{start}
 
 	parents := map[string]string{}
 
-	// Looping stations connected to start station
-	for _, station := range connections[start] {
-		if station == end {
-			parents[end] = start
-			break
-		}
-		queue = append(queue, station)
-		visited[station] = true
-		parents[station] = start
-
-		// Looping stations connected to previous station
-		for _, substation := range connections[queue[0]] {
-
-			// Going backwards
-			if _, visitedStation := visited[substation]; visitedStation == true {
-				continue
-			}
-
-			parents[substation] = station
-
-			if substation == end {
-				break
-			}
-
-			queue = append(queue, substation)
-			// visited[substation] = true
-		}
-
-		if _, found := parents[end]; found == true {
-			break
-		}
-		if len(queue) == 0 {
-			return nil, fmt.Errorf("no path found between %s and %s", start, end)
-		}
+	for len(queue) > 0 {
+		current := queue[0]
 		queue = queue[1:]
+		for _, station := range connections[current] {
 
+			if !visited[station] {
+
+				parents[station] = current
+				visited[station] = true
+				if station == end {
+					break
+				}
+				queue = append(queue, station)
+			}
+
+		}
+
+		if _, found := parents[end]; found {
+			break
+		}
+	}
+
+	if _, found := parents[end]; !found {
+		return nil, fmt.Errorf("no path found between %s and %s", start, end)
 	}
 
 	shortestRoute := reconstructPath(parents, end)
 	return shortestRoute, nil
 }
 
-func reconstructPath(shortestRoute map[string]string, end string) []string {
-	var res []string
-	var next string = end
+func reconstructPath(parents map[string]string, end string) []string {
+	var path []string
+	var child string = end
 
-	res = append(res, next)
+	path = append(path, child)
 
-	for i := 0; i < len(shortestRoute); i++ {
-
-		if parent, found := shortestRoute[next]; found == true {
-			res = append(res, parent)
-			next = parent
+	for {
+		parent, found := parents[child]
+		if !found {
+			break
 		}
-	}
-	slices.Reverse(res)
 
-	return res
+		path = append(path, parent)
+		child = parent
+	}
+	slices.Reverse(path)
+
+	return path
 }

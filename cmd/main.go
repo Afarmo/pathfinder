@@ -21,6 +21,5 @@ func main() {
 		return
 	}
 	path, err := pathfinder.FindShortestPath(graph, cfg.Start, cfg.End)
-	fmt.Printf("\nPath: %v\n\n", path)
 
 }
