@@ -24,10 +24,10 @@ func ParseArgs(args []string) (Config, error) {
 	end := args[3]
 	trainsArg := args[4]
 
-	trains, err := strconv.Atoi(trainsArg)
-	if err != nil {
-		return Config{}, fmt.Errorf("number of trains must be an integer")
-	}
+	trains, _ := strconv.Atoi(trainsArg)
+	// if err != nil {
+	// 	return Config{}, fmt.Errorf("number of trains must be an integer")
+	// }
 	if trains < 1 {
 		return Config{}, fmt.Errorf("number of trains must be greater than 0")
 	}
