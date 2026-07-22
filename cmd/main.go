@@ -7,6 +7,7 @@ import (
 	"pathfinder/internal/cli"
 	"pathfinder/internal/parser"
 	"pathfinder/internal/pathfinder"
+	"pathfinder/internal/scheduler"
 )
 
 func main() {
@@ -22,4 +23,8 @@ func main() {
 	}
 	path, err := pathfinder.FindShortestPath(graph, cfg.Start, cfg.End)
 
+	turns := scheduler.Scheduler(path, cfg.Trains)
+	for i, turn := range turns {
+		fmt.Printf("Turn %d: %s\n", i+1, turn)
+	}
 }
