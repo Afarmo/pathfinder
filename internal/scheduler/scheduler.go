@@ -1,62 +1,99 @@
 package scheduler
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 )
 
 type Train struct {
 	ID       int
 	Position int
+	PathID   int
 }
 
-func Scheduler(path []string, trainCount int) []string {
+func Scheduler(paths [][]string, trainCount int) []string {
 
-	var Trains = make([]Train, trainCount)
-	AssignID(Trains)
+	// Pre assign path lengths
+	var pathLens = make([]int, len(paths))
+	for i := range paths {
+		pathLens[i] = len(paths[i]) - 1
+	}
+
+	var Trains = make([]*Train, trainCount)
+	// Assign ID's to trains
+	for i := range Trains {
+		Trains[i] = &Train{ID: i + 1}
+	}
+	AssignTrains(Trains, paths)
 	var turns []string
+	var arrivedCount int
+	// Main loop that runs as long as all trains haven't arrived
+	for {
 
-	for !AllArrived(Trains, path) {
-
-		var turn strings.Builder
+		// var turn strings.Builder
 		occupied := map[string]bool{}
-
+		var turn strings.Builder
+		var moved bool
 		for i := range Trains {
-
-			// Train has reached the destination
-			if Trains[i].Position == len(path)-1 {
+			train := Trains[i]
+			// Train has already reached the destination
+			if train.Position == pathLens[train.PathID] {
+				arrivedCount++
 				continue
 			}
-			// If the next station is full then skip otherwise empty current station and move to next station
-			if _, full := occupied[path[Trains[i].Position+1]]; full == true {
-				continue
-			} else if Trains[i].Position > 0 && Trains[i].Position < len(path)-1 {
-				delete(occupied, path[Trains[i].Position])
+			if train.Position < pathLens[train.PathID] {
+				moved = true
 			}
 
-			Trains[i].Position++
-			turn.WriteString(fmt.Sprintf("T%d-%s ", Trains[i].ID, path[Trains[i].Position]))
-			if Trains[i].Position > 0 && Trains[i].Position < len(path)-1 {
-				occupied[path[Trains[i].Position]] = true
+			// Next station is full
+			if _, full := occupied[paths[train.PathID][train.Position+1]]; full == true {
+				continue
+			}
+			// Free current station
+			if train.Position > 0 && train.Position < pathLens[train.PathID] {
+				delete(occupied, paths[train.PathID][train.Position])
+			}
+			// Move train
+			train.Position++
+
+			turn.WriteByte('T')
+			turn.WriteString(strconv.Itoa(train.ID))
+			turn.WriteByte('-')
+			turn.WriteString(paths[train.PathID][train.Position])
+			turn.WriteByte(' ')
+
+			// Occupy the new station
+			if train.Position > 0 && train.Position < pathLens[train.PathID] {
+				occupied[paths[train.PathID][train.Position]] = true
 			}
 		}
-		turns = append(turns, turn.String())
+
+		if turn.Len() > 0 {
+			turns = append(turns, strings.TrimSuffix(turn.String(), " "))
+
+		}
+		if !moved {
+			break
+		}
 	}
 	return turns
 }
 
-func AssignID(trains []Train) {
+func AssignTrains(trains []*Train, paths [][]string) {
+	counts := make([]int, len(paths))
+
 	for i := range trains {
-		trains[i].ID = i + 1
-	}
-}
-
-func AllArrived(t []Train, path []string) bool {
-	for i := range t {
-		if t[i].Position != len(path)-1 {
-			return false
+		bestPath := 0
+		bestArrival := 1<<31 - 1 // max int
+		for j, path := range paths {
+			arrival := len(path) - 1 + counts[j]
+			if arrival < bestArrival {
+				bestArrival = arrival
+				bestPath = j
+			}
 		}
-	}
 
-	return true
+		trains[i].PathID = bestPath
+		counts[bestPath]++
+	}
 }
