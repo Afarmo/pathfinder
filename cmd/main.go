@@ -6,7 +6,6 @@ import (
 
 	"pathfinder/internal/cli"
 	"pathfinder/internal/parser"
-	"pathfinder/internal/pathfinder"
 )
 
 func main() {
@@ -20,11 +19,5 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error Parsing Map: %v\n", err)
 		return
 	}
-	allpath, err := pathfinder.FindAllPaths(graph, cfg.Start, cfg.End)
-	if err != nil{
-		fmt.Println("error")
-	}
-	fmt.Println(allpath)
-	// path, err := pathfinder.FindShortestPath(graph, cfg.Start, cfg.End)
 
 }
