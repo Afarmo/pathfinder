@@ -9,60 +9,77 @@ import (
 	"strings"
 )
 
-func MapParser(path string) (models.Graph, error) {
+func MapParser(path string, start, end string) (models.Graph, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return models.Graph{}, fmt.Errorf("map file dosn't exist")
+		return models.Graph{}, fmt.Errorf("opening network map: %w", err)
 	}
 	defer file.Close()
 
 	var lines []string
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		eachLine := scanner.Text()
-		beforeComment, _, _ := strings.Cut(eachLine, "#")
+		line := scanner.Text()
+
+		beforeComment, _, _ := strings.Cut(line, "#")
 		trimmedLine := strings.TrimSpace(beforeComment)
+
 		if trimmedLine == "" {
 			continue
 		}
+
 		lines = append(lines, trimmedLine)
 	}
+
 	if err := scanner.Err(); err != nil {
-		return models.Graph{}, fmt.Errorf("error reading map file: %w", err)
+		return models.Graph{}, fmt.Errorf("reading network map file: %w", err)
 	}
 
 	stations, connections, err := Categorize(lines)
 	if err != nil {
-		return models.Graph{}, fmt.Errorf("error categorizing: %w", err)
+		return models.Graph{}, fmt.Errorf("categorizing network map: %w", err)
 	}
-	validatedconnections, err := ConnectionValidator(connections)
+
+	validStations, err := StationValidator(stations)
 	if err != nil {
-		return models.Graph{}, fmt.Errorf("error validating connection: %w", err)
+		return models.Graph{}, fmt.Errorf("validating stations: %w", err)
 	}
-	validatedstations, err := Stationvalidator(stations)
+	if _, ok := validStations[start]; !ok {
+		return models.Graph{}, fmt.Errorf("start station %q does not exist", start)
+	}
+	if _, ok := validStations[end]; !ok {
+		return models.Graph{}, fmt.Errorf("end station %q does not exist", end)
+	}
+
+	validConnections, err := ConnectionValidator(connections, validStations)
 	if err != nil {
-		return models.Graph{}, fmt.Errorf("error validating station: %w", err)
+		return models.Graph{}, fmt.Errorf("validating connections: %w", err)
 	}
+
 	g := models.Graph{
-		Stations:    validatedstations,
-		Connections: validatedconnections,
+		Stations:    validStations,
+		Connections: validConnections,
 	}
+
 	return g, nil
 }
 
 func Categorize(lines []string) ([]string, []string, error) {
-	var stations, connections []string
+	var stations []string
+	var connections []string
+
 	stationsIdx := slices.Index(lines, "stations:")
 	connectionsIdx := slices.Index(lines, "connections:")
 
 	if stationsIdx == -1 {
-		return nil, nil, fmt.Errorf("missing 'stations:' section")
+		return nil, nil, fmt.Errorf(`missing "stations:" section`)
 	}
 	if connectionsIdx == -1 {
-		return nil, nil, fmt.Errorf("missing 'connections:' section")
+		return nil, nil, fmt.Errorf(`missing "connections:" section`)
 	}
 	stations = append(stations, lines[stationsIdx+1:connectionsIdx]...)
 	connections = append(connections, lines[connectionsIdx+1:]...)
-	return stations, connections, nil
 
+	return stations, connections, nil
 }
