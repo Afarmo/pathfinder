@@ -20,8 +20,8 @@ func ParseArgs(args []string) (Config, error) {
 	}
 
 	filepath := args[1]
-	start := args[2]
-	end := args[3]
+	start := strings.ToLower(args[2])
+	end := strings.ToLower(args[3])
 	trainsArg := args[4]
 
 	trains, err := strconv.Atoi(trainsArg)
