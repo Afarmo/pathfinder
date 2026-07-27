@@ -8,88 +8,102 @@ import (
 	"unicode"
 )
 
-func ConnectionValidator(ConnectionLine []string) (map[string]map[string]bool, error) {
-	var stations map[string]models.Station
+func ConnectionValidator(lines []string, stations map[string]models.Station) (map[string]map[string]bool, error) {
 	connections := make(map[string]map[string]bool)
 
-	for _, line := range ConnectionLine {
-		eachConnection := strings.Split(line, "-")
-		if len(eachConnection) != 2 {
-			return nil, fmt.Errorf("Invalid connection line %s", eachConnection)
-		}
-		connection1 := eachConnection[0]
-		connection2 := eachConnection[1]
-
-		_, exists := stations[connection1]
-		_, ok := stations[connection2]
-
-		if exists {
-			return nil, fmt.Errorf("station unknown: %s", connection1)
-		}
-		if ok {
-			return nil, fmt.Errorf("station unknown: %s", connection2)
-		}
-		if connections[connection1][connection2] {
-			return nil, fmt.Errorf("connections duplicated: %s - %s", connection1, connection2)
+	for _, line := range lines {
+		parts := strings.Split(line, "-")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid connection line: %q", line)
 		}
 
-		if connections[connection1] == nil {
-			connections[connection1] = make(map[string]bool)
-		}
-		if connections[connection2] == nil {
-			connections[connection2] = make(map[string]bool)
+		for _, part := range parts {
+			part = strings.TrimSpace(part)
+			for _, ch := range part {
+				if unicode.IsLower(ch) || unicode.IsNumber(ch) || ch == '_' {
+					continue
+				}
+				return nil, fmt.Errorf("invalid connection name: %q", part)
+			}
 		}
 
-		connections[connection1][connection2] = true
-		connections[connection2][connection1] = true
+		left := strings.TrimSpace(parts[0])
+		right := strings.TrimSpace(parts[1])
+
+		if _, ok := stations[left]; !ok {
+			return nil, fmt.Errorf("nonexistent station: %q", left)
+		}
+		if _, ok := stations[right]; !ok {
+			return nil, fmt.Errorf("nonexistent station: %q", right)
+		}
+
+		if connections[left] == nil {
+			connections[left] = make(map[string]bool)
+		}
+		if connections[right] == nil {
+			connections[right] = make(map[string]bool)
+		}
+		if connections[left][right] || connections[right][left] {
+			return nil, fmt.Errorf("duplicate connection between %q and %q", left, right)
+		}
+
+		connections[left][right] = true
+		connections[right][left] = true
 	}
-	return connections, nil
 
+	return connections, nil
 }
 
-func Stationvalidator(stationLines []string) (map[string]models.Station, error) {
+func StationValidator(lines []string) (map[string]models.Station, error) {
 	stations := make(map[string]models.Station)
 	coords := make(map[[2]int]string)
 
-	for _, line := range stationLines {
-		eachparts := strings.Split(line, ",")
-		if len(eachparts) != 3 {
-			return nil, fmt.Errorf("invalid station line: %s", line)
+	for _, line := range lines {
+		parts := strings.Split(line, ",")
+		if len(parts) != 3 {
+			return nil, fmt.Errorf("invalid station line: %q", line)
 		}
-		name := strings.TrimSpace(eachparts[0])
-		xCoord := strings.TrimSpace(eachparts[1])
-		yCoord := strings.TrimSpace(eachparts[2])
+		name := strings.TrimSpace(parts[0])
+		xCoord := strings.TrimSpace(parts[1])
+		yCoord := strings.TrimSpace(parts[2])
 
-		for _, v := range name {
-			if unicode.IsLower(v) || unicode.IsNumber(v) || v == '_' {
+		for _, ch := range name {
+			if unicode.IsLower(ch) || unicode.IsNumber(ch) || ch == '_' {
 				continue
-			} else {
-				return nil, fmt.Errorf("invalid staion name: %s", name)
 			}
+			return nil, fmt.Errorf("invalid station name: %q", name)
 		}
-		_, exists := stations[name]
-		if exists {
-			return nil, fmt.Errorf("duplicate station name: %s", name)
+
+		if _, exists := stations[name]; exists {
+			return nil, fmt.Errorf("duplicate station name: %q", name)
 		}
 
 		x, err := strconv.Atoi(xCoord)
 		if err != nil || x < 0 {
-			return nil, fmt.Errorf("error changing x coordinate for %s", xCoord)
+			return nil, fmt.Errorf("invalid x coordinate for %q: %q", name, xCoord)
 		}
 
 		y, err := strconv.Atoi(yCoord)
 		if err != nil || y < 0 {
-			return nil, fmt.Errorf("error changing y coordinate for %s", yCoord)
+			return nil, fmt.Errorf("invalid y coordinate for %q: %q", name, yCoord)
 		}
 
 		coord := [2]int{x, y}
-		another, exists := coords[coord]
-		if exists {
-			return nil, fmt.Errorf("coordinates duplicated %s & %s", name, another)
+		if other, exists := coords[coord]; exists {
+			return nil, fmt.Errorf("duplicate coordinates for %q and %q", name, other)
 		}
 		coords[coord] = name
 
-		stations[name] = models.Station{Name: name, X: x, Y: y}
+		stations[name] = models.Station{
+			Name: name,
+			X:    x,
+			Y:    y,
+		}
 	}
+
+	if len(stations) > 10000 {
+		return nil, fmt.Errorf("station limit exceeded: %d > 10000", len(stations))
+	}
+
 	return stations, nil
 }

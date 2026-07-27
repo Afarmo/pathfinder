@@ -18,7 +18,7 @@ func main() {
 		return
 	}
 
-	graph, err := parser.MapParser(cfg.FilePath)
+	graph, err := parser.MapParser(cfg.FilePath, cfg.Start, cfg.End)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error Parsing Map: %v\n", err)
 		return
