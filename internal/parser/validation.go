@@ -90,7 +90,7 @@ func StationValidator(lines []string) (map[string]models.Station, error) {
 
 		coord := [2]int{x, y}
 		if other, exists := coords[coord]; exists {
-			return nil, fmt.Errorf("duplicate coodrinates for %q and %q", name, other)
+			return nil, fmt.Errorf("duplicate coordinates for %q and %q", name, other)
 		}
 		coords[coord] = name
 
