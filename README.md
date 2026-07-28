@@ -188,8 +188,11 @@ Where:
 │   │   ├── parser.go
 │   │   └── validation.go
 │   ├── pathfinder
-│   │   ├── allPath.go
+│   │   ├── pathFinder.go
 │   │   └── bfs.go
+│   │   └── maxFlow.go
+│   │   └── graph.go
+│   │   └── extract.go
 │   └── scheduler
 │       └── scheduler.go
 ├── maps
