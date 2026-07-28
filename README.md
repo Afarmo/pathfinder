@@ -1,5 +1,5 @@
 # 🚆 Stations Pathfinder
-![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)
+![Go](https://img.shields.io/badge/Go-1.26.5-00ADD8?logo=go&logoColor=white)
 ## Overview
 
 Stations Pathfinder is a Go-based train dispatching simulation that routes multiple trains through a railway network while minimizing the total number of turns required to reach their destination.
