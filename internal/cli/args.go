@@ -16,8 +16,8 @@ type Config struct {
 // ParseArgs parses and validates command-line input and constructs a Config
 func ParseArgs(args []string) (Config, error) {
 	if len(args) != 5 {
-		return Config{}, fmt.Errorf("insufficient arguments")
-	}
+		return Config{}, fmt.Errorf("Expected 5 arguments got %d", len(args))
+	} 
 
 	filepath := args[1]
 	start := strings.ToLower(args[2])
