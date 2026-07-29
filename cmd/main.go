@@ -38,7 +38,9 @@ func main() {
 
 	w := bufio.NewWriter(os.Stdout)
 	for _, turn := range turns {
-		w.WriteString(Magenta + turn + Reset)
+		w.WriteString(Magenta)
+		w.WriteString(turn)
+		w.WriteString(Reset)
 		w.WriteByte('\n')
 	}
 	w.Flush()
