@@ -1,8 +1,10 @@
 package parser
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -229,5 +231,26 @@ terminus-ghost`)
 	_, err := MapParser(path, "beginning", "terminus")
 	if err == nil {
 		t.Fatal("expected error for connection with a nonexistent station, instead got:", err)
+	}
+}
+
+func Test10KStationLimit(t *testing.T) {
+	tmp := os.TempDir()
+	path := filepath.Join(tmp, "10k.map")
+
+	var builder strings.Builder
+	builder.WriteString("stations:\n")
+	for i := 0; i < 10001; i++ {
+		fmt.Fprintf(&builder, "%d,%d,%d\n", i, i+1, i+2)
+	}
+	builder.WriteString("connections:\n")
+
+	if err := os.WriteFile(path, []byte(builder.String()), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := MapParser(path, "0", "1")
+	if err == nil {
+		t.Fatal("expected error for exceeding 10,000 station limit, instead got:", err)
 	}
 }
